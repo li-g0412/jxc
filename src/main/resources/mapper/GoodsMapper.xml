@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.jxc.dao.GoodsDao">
+
+    <select id="getMaxCode" resultType="java.lang.String">
+        SELECT
+            MAX( goods_code )
+        FROM
+            t_goods
+    </select>
+
+    <select id="getAllGoods" resultType="com.atguigu.jxc.entity.Goods">
+            select * from t_goods inner join t_goods_type on t_goods.goods_type_id = t_goods_type.goods_type_id
+            <where>
+                <if test="codeOrName!=null and codeOrName.length>0">
+                    goods_name like "%"#{codeOrName}"%" or goods_code = #{codeOrName}
+                </if>
+                <if test="goodsTypeId!=null">
+                    and t_goods.goods_type_id = #{goodsTypeId}
+                </if>
+            </where>
+#         select
+#             g.goods_code,g.goods_name,gt.goods_type_name,g.goods_model,g.inventory_quantity,
+#             g.last_purchasing_price,g.purchasing_price,g.selling_price,
+#             g.inventory_quantity*g.selling_price as inventoryTotalPrice,g.goods_unit,g.goods_producer
+#         from  t_goods g inner join  t_goods_type gt
+#         where gt.goods_type_id = g.goods_type_id
+    </select>
+
+    <select id="getAllGoodsType" resultType="com.atguigu.jxc.entity.Goods">
+        select * from t_goods inner join t_goods_type on t_goods.goods_type_id = t_goods_type.goods_type_id where  inventory_quantity &lt;=0
+            <if test="nameOrCode!=null">
+                and goods_name like CONCAT('%',#{nameOrCode},'%') or goods_code = #{nameOrCode}
+            </if>
+    </select>
+
+    <select id="getHasInventoryMap" resultType="com.atguigu.jxc.entity.Goods">
+        select * from t_goods inner join t_goods_type on t_goods.goods_type_id = t_goods_type.goods_type_id where inventory_quantity > 0
+        <if test="nameOrCode!=null">
+            and goods_name like CONCAT('%',#{nameOrCode},'%') or goods_code = #{nameOrCode}
+        </if>
+    </select>
+
+    <update id="saveStock">
+        update t_goods
+        <set>
+            <if test="inventoryQuantity != null">
+                inventory_quantity = #{inventoryQuantity},
+            </if>
+            <if test="purchasingPrice != null">
+                purchasing_price = #{purchasingPrice}
+            </if>
+        </set>
+        where goods_id = #{goodsId}
+    </update>
+
+    <delete id="delStockById">
+        delete from t_goods where goods_id = #{goodsId} and state = 0
+    </delete>
+
+    <select id="getAllSupplier" resultType="com.atguigu.jxc.entity.Goods">
+        select * from t_goods inner join t_goods_type on t_goods.goods_type_id = t_goods_type.goods_type_id
+        <where>
+            <if test="goodsName!=null">
+                goods_name like "%"#{goodsName}"%"
+            </if>
+            <if test="goodsTypeId!=null">
+                and t_goods.goods_type_id = #{goodsTypeId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="add">
+        INSERT INTO t_goods(goods_type_id, goods_code, goods_name, goods_model, goods_producer, goods_unit
+                            ,purchasing_price, last_purchasing_price, min_num, remarks,selling_price,inventory_quantity,state)
+        values (#{goodsTypeId}, #{goodsCode}, #{goodsName}, #{goodsModel}, #{goodsProducer}, #{goodsUnit},
+                #{purchasingPrice}, #{lastPurchasingPrice}, #{minNum}, #{remarks},#{sellingPrice},#{inventoryQuantity},#{state})
+    </insert>
+
+    <update id="update">
+        update t_goods
+        set goods_type_id        = #{goodsTypeId},
+            goods_code=#{goodsCode},
+            goods_name=#{goodsName},
+            goods_model=#{goodsModel},
+            goods_producer=#{goodsProducer},
+            goods_unit=#{goodsUnit},
+            purchasing_price=#{purchasingPrice},
+            last_purchasing_price=#{lastPurchasingPrice},
+            min_num=#{minNum},
+            remarks=#{remarks}
+        where goods_id = #{goodsId}
+    </update>
+    <delete id="delete">
+        delete from t_goods where goods_id = #{goodsId}
+    </delete>
+
+    <select id="selectAlarmList" resultType="com.atguigu.jxc.entity.Goods">
+        SELECT g.*,gt.goods_type_name,(SELECT SUM(goods_num) FROM t_sale_list_goods WHERE goods_code = g.goods_code) sale_total FROM t_goods g INNER JOIN t_goods_type gt ON g.goods_type_id = gt.goods_type_id  where g.inventory_quantity &lt; g.min_num
+    </select>
+
+</mapper>

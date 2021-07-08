@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.jxc.dao.CustomerDao">
+
+    <select id="getAllCustomerList" resultType="com.atguigu.jxc.entity.Customer">
+        select * from t_customer
+        <where>
+            <if test="customerName!=null and customerName.length>0">
+                customer_name like "%"#{customerName}"%"
+            </if>
+        </where>
+    </select>
+
+    <update id="updateCustomerById">
+        UPDATE t_customer
+        <set>
+            <if test="customerName != '' and customerName != null">
+                customer_name = #{customerName},
+            </if>
+            <if test="contacts != '' and contacts != null">
+                contacts = #{contacts},
+            </if>
+            <if test="phoneNumber != '' and phoneNumber != null">
+                phone_number = #{phoneNumber},
+            </if>
+            <if test="address != '' and address != null">
+                address = #{address},
+            </if>
+            <if test="remarks != '' and remarks != null">
+                remarks = #{remarks},
+            </if>
+        </set>
+        WHERE customer_id = #{customerId}
+    </update>
+
+    <insert id="addCustomerById">
+        insert into t_customer (customer_name,contacts,phone_number,address,remarks) values (
+                               #{customerName},
+                               #{contacts},
+                               #{phoneNumber},
+                               #{address},
+                               #{remarks}
+                               )
+    </insert>
+
+    <delete id="delCustomerList">
+        delete from t_customer where customer_id = #{customerId}
+    </delete>
+
+</mapper>
